@@ -1,0 +1,14 @@
+services:
+  mysql:
+    container_name: db
+    image: 'mysql:latest'
+    environment:
+      MYSQL_DATABASE: mysqldb
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: 1234
+      TZ: 'Asia/Seoul'
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
