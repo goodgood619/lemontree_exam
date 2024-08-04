@@ -49,7 +49,7 @@ class PayBackService(
             throw CustomException(ErrorCode.NO_AUTHORIZATION)
         }
 
-        // TODO : payback이 존재하면 payback 불가
+        // TODO : payback이 존재할 때, 들어온 paybackAmount와 기존 payback 금액들을 합산 했을 때 비용보다 클 경우 payback 불가
 
         val authorization = authorizationList.first()
 
