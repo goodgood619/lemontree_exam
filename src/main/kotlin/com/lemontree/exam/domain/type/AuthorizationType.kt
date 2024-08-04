@@ -1,5 +1,5 @@
 package com.lemontree.exam.domain.type
 
 enum class AuthorizationType {
-    AUTHORIZE, REVERSE;
+    AUTHORIZE, AUTHORIZE_REVERSE;
 }

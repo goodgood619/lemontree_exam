@@ -68,7 +68,7 @@ class AuthorizationService(
 
         // reverse no exist
         if (authorizationList.any { authorization ->
-                authorization.type == AuthorizationType.REVERSE
+                authorization.type == AuthorizationType.AUTHORIZE_REVERSE
             }) {
             throw CustomException(ErrorCode.EXIST_REVERSE)
         }

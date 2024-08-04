@@ -42,7 +42,7 @@ class Authorization(
                authorizationNumber: Int,
                cardAcceptorCode: String, cardAcceptorName: String): Authorization = with(authorizationReversalRequest) {
             return Authorization(
-                type = AuthorizationType.REVERSE,
+                type = AuthorizationType.AUTHORIZE_REVERSE,
                 currency = currency,
                 amount = amount,
                 authorizationNumber = authorizationNumber,
