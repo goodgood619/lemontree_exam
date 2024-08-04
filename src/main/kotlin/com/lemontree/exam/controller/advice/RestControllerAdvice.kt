@@ -1,4 +1,4 @@
-package com.lemontree.exam.controller
+package com.lemontree.exam.controller.advice
 
 import com.lemontree.exam.domain.response.GeneralResponse
 import com.lemontree.exam.exception.CustomException
