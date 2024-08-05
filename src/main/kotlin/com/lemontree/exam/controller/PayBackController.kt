@@ -4,6 +4,7 @@ import com.lemontree.exam.domain.request.PayBackRequest
 import com.lemontree.exam.domain.request.PayBackReversalRequest
 import com.lemontree.exam.domain.response.GeneralResponse
 import com.lemontree.exam.domain.response.PayBackResponse
+import com.lemontree.exam.domain.response.PayBackReversalResponse
 import com.lemontree.exam.service.PayBackService
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,8 +23,8 @@ class PayBackController(
     }
 
     @PostMapping("/user/{id}/payback/reverse")
-    fun reverse(@PathVariable id: Long, @RequestBody payBackReversalRequest: PayBackReversalRequest): GeneralResponse<Any> {
-        payBackService.reverse(id, payBackReversalRequest)
-        return GeneralResponse()
+    fun reverse(@PathVariable id: Long, @RequestBody payBackReversalRequest: PayBackReversalRequest): GeneralResponse<PayBackReversalResponse> {
+        val payBackReversalResponse = payBackService.reverse(id, payBackReversalRequest)
+        return GeneralResponse(data = payBackReversalResponse)
     }
 }

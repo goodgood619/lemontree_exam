@@ -12,4 +12,7 @@ enum class ErrorCode(val status: HttpStatus, val message: String) {
     ONCE_LIMIT_AMOUNT_EXCEED(HttpStatus.BAD_REQUEST, "1회 결제 금액이 초과 되어 결제가 불가능 합니다."),
     DAY_LIMIT_AMOUNT_EXCEED(HttpStatus.BAD_REQUEST, "1일 결제 금액이 초과 되어 결제가 불가능 합니다. "),
     MONTH_LIMIT_AMOUNT_EXCEED(HttpStatus.BAD_REQUEST, "1달 결제 금액이 초과 되어 결제가 불가능 합니다. "),
+    NO_PAYBACK_EXIST_REVERSE(HttpStatus.BAD_REQUEST, "이미 승인 취소가 존재해 페이백이 불가능 합니다."),
+    NO_PAYBACK(HttpStatus.BAD_REQUEST, "페이백이 존재하지 않아 취소 할수 없습니다."),
+    EXIST_PAYBACK_REVERSE(HttpStatus.BAD_REQUEST, "페이백 취소가 이미 존재해 취소 할수 없습니다."),
 }

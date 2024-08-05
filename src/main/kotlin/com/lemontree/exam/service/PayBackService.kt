@@ -10,7 +10,9 @@ import com.lemontree.exam.domain.request.PayBackReversalRequest
 import com.lemontree.exam.domain.response.AuthorizationResponse
 import com.lemontree.exam.domain.response.AuthorizationReversalResponse
 import com.lemontree.exam.domain.response.PayBackResponse
+import com.lemontree.exam.domain.response.PayBackReversalResponse
 import com.lemontree.exam.domain.type.AuthorizationType
+import com.lemontree.exam.domain.type.PayBackType
 import com.lemontree.exam.exception.CustomException
 import com.lemontree.exam.exception.ErrorCode
 import com.lemontree.exam.repository.AuthorizationRepository
@@ -33,8 +35,6 @@ class PayBackService(
             throw CustomException(ErrorCode.NOT_EXIST_USER)
         }
 
-        // TODO : if 승인 취소가 이미 존재하면 payback 불가
-
         val authorizationList =
             authorizationRepository.findByTypeAndCurrencyAndAuthorizationNumber(
                 userId = user.id,
@@ -49,7 +49,19 @@ class PayBackService(
             throw CustomException(ErrorCode.NO_AUTHORIZATION)
         }
 
-        // TODO : payback이 존재할 때, 들어온 paybackAmount와 기존 payback 금액들을 합산 했을 때 비용보다 클 경우 payback 불가
+        // if 승인 취소가 이미 존재하면 payback 불가
+        val authorizationReverseList =
+            authorizationRepository.findByTypeAndCurrencyAndAuthorizationNumber(
+                userId = user.id,
+                type = AuthorizationType.AUTHORIZE_REVERSE,
+                currency = payBackRequest.currency,
+                amount = payBackRequest.amount,
+                authorizationNumber = payBackRequest.authorizationNumber
+            )
+
+        if (authorizationReverseList.isNotEmpty()) {
+            throw CustomException(ErrorCode.NO_PAYBACK_EXIST_REVERSE)
+        }
 
         val authorization = authorizationList.first()
 
@@ -68,17 +80,67 @@ class PayBackService(
         return PayBackResponse.of(payBack, user.balance)
     }
 
-    // 취소가 여러번 들어올 수 있는 동시성 체크에 대해 구현이 추가로 되어 있어야 함
     @Transactional
     fun reverse(
         userId: Long,
         payBackReversalRequest: PayBackReversalRequest
-    ) {
+    ): PayBackReversalResponse {
         // user exist check
         val user = userRepository.findById(userId).orElseThrow {
             throw CustomException(ErrorCode.NOT_EXIST_USER)
         }
 
 
+        // if 승인 취소가 이미 존재하면 payback 취소 또한 불가
+        val authorizationReverseList =
+            authorizationRepository.findByTypeAndCurrencyAndAuthorizationNumber(
+                userId = user.id,
+                type = AuthorizationType.AUTHORIZE_REVERSE,
+                currency = payBackReversalRequest.currency,
+                amount = payBackReversalRequest.amount,
+                authorizationNumber = payBackReversalRequest.authorizationNumber
+            )
+
+        if (authorizationReverseList.isNotEmpty()) {
+            throw CustomException(ErrorCode.NO_PAYBACK_EXIST_REVERSE)
+        }
+
+        // check payback
+        val payBackList = payBackRepository.findByTypeAndCurrencyAndAuthorizationNumber(
+            userId = userId,
+            amount = payBackReversalRequest.payBackAmount,
+            currency = payBackReversalRequest.currency,
+            authorizationNumber = payBackReversalRequest.authorizationNumber,
+            payBackNumber = payBackReversalRequest.payBackNumber
+        )
+
+        if (payBackList.isEmpty()) {
+            throw CustomException(ErrorCode.NO_PAYBACK)
+        }
+
+
+        // check payback reverse
+        if (payBackList.any { it.type == PayBackType.PAYBACK_REVERSE }) {
+            throw CustomException(ErrorCode.EXIST_PAYBACK_REVERSE)
+        }
+
+        val authorization =
+            authorizationRepository.findByTypeAndCurrencyAndAuthorizationNumber(
+                userId = user.id,
+                type = AuthorizationType.AUTHORIZE,
+                amount = payBackReversalRequest.amount,
+                currency = payBackReversalRequest.currency,
+                authorizationNumber = payBackReversalRequest.authorizationNumber
+            ).first()
+
+        // save Payback
+        val payBack = PayBack.of(payBackReversalRequest, authorization)
+
+        payBackRepository.save(payBack)
+
+        // user balance update
+        user.balance = user.balance.subtract(payBackReversalRequest.payBackAmount)
+
+        return PayBackReversalResponse.from(user.balance)
     }
 }

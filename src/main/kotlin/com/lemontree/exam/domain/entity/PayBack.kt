@@ -1,6 +1,7 @@
 package com.lemontree.exam.domain.entity
 
 import com.lemontree.exam.domain.request.PayBackRequest
+import com.lemontree.exam.domain.request.PayBackReversalRequest
 import com.lemontree.exam.domain.type.PayBackType
 import com.lemontree.exam.util.Utils
 import jakarta.persistence.*
@@ -33,6 +34,18 @@ class PayBack(
                 amount = payBackAmount,
                 authorizationNumber = authorization.authorizationNumber,
                 payBackNumber = Utils.generateRandomSixDigitNumber(),
+                authorization = authorization
+            )
+        }
+
+        fun of(payBackReversalRequest: PayBackReversalRequest, authorization: Authorization): PayBack = with(payBackReversalRequest) {
+            return PayBack(
+                type = PayBackType.PAYBACK_REVERSE,
+                currency = currency,
+                authorizationAmount = amount,
+                amount = payBackAmount,
+                authorizationNumber = authorizationNumber,
+                payBackNumber = payBackNumber,
                 authorization = authorization
             )
         }
