@@ -14,7 +14,7 @@ class Authorization(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     val type: AuthorizationType,
     val currency: Currency,
     val amount: BigDecimal,

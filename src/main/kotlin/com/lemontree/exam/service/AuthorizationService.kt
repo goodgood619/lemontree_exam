@@ -12,11 +12,14 @@ import com.lemontree.exam.repository.AuthorizationRepository
 import com.lemontree.exam.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @Service
 class AuthorizationService(
     private val userRepository: UserRepository,
     private val authorizationRepository: AuthorizationRepository,
+    private val limitAmountService: LimitAmountService,
 ) {
 
     @Transactional
@@ -30,6 +33,21 @@ class AuthorizationService(
         if (user.balance < authorizationRequest.amount) {
             throw CustomException(ErrorCode.NOT_ENOUGH_BALANCE)
         }
+
+        // check limit Amount
+        // 최대 1달 이내의 결제액을 알아야 제대로 된 계산을 할수 있다고 믿었음
+        // 일일이 1일, 1달과 연관된 쿼리문을 호출하는 것 보다, CPU를 사용해서 처리하는게 좀 더 효율적일 것이라 생각
+        val monthlyAuthorizationList = authorizationRepository.findByCreatedAtBetweenAndType(
+            userId = userId,
+            from = LocalDateTime.now().minus(1, ChronoUnit.MONTHS).toLocalDate().atStartOfDay(),
+            to = LocalDateTime.now(),
+            type = AuthorizationType.AUTHORIZE
+        )
+
+        limitAmountService.checkAmount(
+            currentAmount = authorizationRequest.amount,
+            list = monthlyAuthorizationList
+        )
 
         // save authorize
         val authorization = Authorization.of(authorizationRequest, user)

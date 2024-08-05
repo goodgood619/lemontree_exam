@@ -13,7 +13,7 @@ class PayBack(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     val type: PayBackType,
     val currency: Currency,
     val authorizationAmount: BigDecimal,
