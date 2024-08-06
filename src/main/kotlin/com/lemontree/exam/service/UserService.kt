@@ -28,7 +28,6 @@ class UserService(
         userRepository.save(User.of(signUpRequest))
     }
 
-    @Transactional
     fun login(loginRequest: LoginRequest): LoginResponse {
 
         val user = userRepository.findByEmail(loginRequest.email)
@@ -49,7 +48,7 @@ class UserService(
         if (user.balance.add(chargeRequest.amount) >= user.limitBalance) {
             throw CustomException(ErrorCode.USER_BALANCE_LIMIT_EXCEED)
         }
-        
+
         user.balance = user.balance.add(chargeRequest.amount) // dirty checking
     }
 }

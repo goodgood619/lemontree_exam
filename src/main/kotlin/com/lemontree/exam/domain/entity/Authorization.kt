@@ -9,7 +9,7 @@ import java.math.BigDecimal
 import java.util.Currency
 
 @Entity
-@Table(name = "authorization")
+@Table(name = "authorizations")
 class Authorization(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
