@@ -15,4 +15,6 @@ enum class ErrorCode(val status: HttpStatus, val message: String) {
     NO_PAYBACK_EXIST_REVERSE(HttpStatus.BAD_REQUEST, "이미 승인 취소가 존재해 페이백이 불가능 합니다."),
     NO_PAYBACK(HttpStatus.BAD_REQUEST, "페이백이 존재하지 않아 취소 할수 없습니다."),
     EXIST_PAYBACK_REVERSE(HttpStatus.BAD_REQUEST, "페이백 취소가 이미 존재해 취소 할수 없습니다."),
+    LOCK_ACQUIRE_FAIL(HttpStatus.BAD_REQUEST, "동시에 API 요청이 발생해 처리할수 없습니다."),
+    USER_BALANCE_LIMIT_EXCEED(HttpStatus.BAD_REQUEST, "유저가 보유할 수 있는 최대 한도를 넘었습니다."),
 }

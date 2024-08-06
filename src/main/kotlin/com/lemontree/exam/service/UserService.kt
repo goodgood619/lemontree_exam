@@ -46,6 +46,10 @@ class UserService(
         val user = userRepository.findById(id).getOrNull()
             ?: throw CustomException(ErrorCode.NOT_EXIST_USER)
 
+        if (user.balance.add(chargeRequest.amount) >= user.limitBalance) {
+            throw CustomException(ErrorCode.USER_BALANCE_LIMIT_EXCEED)
+        }
+        
         user.balance = user.balance.add(chargeRequest.amount) // dirty checking
     }
 }

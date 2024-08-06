@@ -1,5 +1,6 @@
 package com.lemontree.exam.service
 
+import com.lemontree.exam.common.RedissonLock
 import com.lemontree.exam.domain.entity.Authorization
 import com.lemontree.exam.domain.entity.PayBack
 import com.lemontree.exam.domain.entity.QAuthorization.authorization
@@ -28,6 +29,7 @@ class PayBackService(
     private val payBackRepository: PayBackRepository
 ) {
 
+    @RedissonLock(keyPrefix = "payBack")
     @Transactional
     fun payback(userId: Long, payBackRequest: PayBackRequest): PayBackResponse {
         // user exist check
@@ -80,6 +82,7 @@ class PayBackService(
         return PayBackResponse.of(payBack, user.balance)
     }
 
+    @RedissonLock(keyPrefix = "payBackReverse")
     @Transactional
     fun reverse(
         userId: Long,

@@ -1,5 +1,6 @@
 package com.lemontree.exam.service
 
+import com.lemontree.exam.common.RedissonLock
 import com.lemontree.exam.domain.entity.Authorization
 import com.lemontree.exam.domain.request.AuthorizationRequest
 import com.lemontree.exam.domain.request.AuthorizationReversalRequest
@@ -61,6 +62,7 @@ class AuthorizationService(
     }
 
     // 취소가 여러번 들어올 수 있는 동시성 체크에 대해 구현이 추가로 되어 있어야 함
+    @RedissonLock(keyPrefix = "authorizeReverse")
     @Transactional
     fun reverse(
         userId: Long,

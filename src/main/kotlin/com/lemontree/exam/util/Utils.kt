@@ -1,7 +1,11 @@
 package com.lemontree.exam.util
 
+import com.lemontree.exam.common.userMaximumBalanceLimitList
+import java.lang.Math.random
+import java.math.BigDecimal
 import java.security.MessageDigest
 import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 object Utils {
 
@@ -14,5 +18,9 @@ object Utils {
 
     fun generateRandomSixDigitNumber(): Int {
         return ThreadLocalRandom.current().nextInt(100000, 1000000)
+    }
+
+    fun generateRandomUserMaximumBalanceLimit(): BigDecimal {
+        return userMaximumBalanceLimitList[Random.nextInt(0, 3)]
     }
 }

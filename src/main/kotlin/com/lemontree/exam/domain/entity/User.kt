@@ -2,6 +2,7 @@ package com.lemontree.exam.domain.entity
 
 import com.lemontree.exam.domain.request.SignUpRequest
 import com.lemontree.exam.util.Utils
+import com.lemontree.exam.util.Utils.generateRandomUserMaximumBalanceLimit
 import jakarta.persistence.*
 import java.math.BigDecimal
 
@@ -15,6 +16,7 @@ class User(
     val nickname: String,
     val password: String,
     var balance: BigDecimal = BigDecimal.ZERO,
+    val limitBalance: BigDecimal = generateRandomUserMaximumBalanceLimit()
 ) : BaseEntity() {
     companion object {
         fun of(signUpRequest: SignUpRequest) =
