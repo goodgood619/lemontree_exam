@@ -8,8 +8,8 @@ import java.util.Currency
 @Entity
 @Table(name = "limit_amount_policy")
 class LimitAmountPolicy(
-    @GeneratedValue
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
     @Enumerated(value = EnumType.STRING)
     val type: LimitAmountType,
