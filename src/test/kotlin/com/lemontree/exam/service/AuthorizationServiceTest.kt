@@ -5,12 +5,14 @@ import com.lemontree.exam.domain.entity.QAuthorization.authorization
 import com.lemontree.exam.domain.entity.QUser.user
 import com.lemontree.exam.domain.entity.User
 import com.lemontree.exam.domain.request.AuthorizationRequest
+import com.lemontree.exam.domain.request.AuthorizationReversalRequest
 import com.lemontree.exam.domain.request.SignUpRequest
 import com.lemontree.exam.domain.type.LimitAmountType
 import com.lemontree.exam.exception.CustomException
 import com.lemontree.exam.exception.ErrorCode
 import com.lemontree.exam.repository.LimitAmountPolicyRepository
 import com.lemontree.exam.repository.UserRepository
+import com.lemontree.exam.util.Utils.generateRandomSixDigitNumber
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -77,10 +79,10 @@ class AuthorizationServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `authorize - user가 존재하지 않을 때`() {
+    fun `authorize - user가 존재하지 않을 때 에러`() {
         val errorCode = assertThrows<CustomException> {
             authorizationService.authorize(
-                2L,
+                1000L,
                 AuthorizationRequest(
                     currency = Currency.getInstance("KRW"),
                     amount = BigDecimal("500000"),
@@ -94,7 +96,7 @@ class AuthorizationServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `authorize - 1회 금액이 초과될 때 `() {
+    fun `authorize - 1회 금액이 초과될 때 에러`() {
 
         val errorCode = assertThrows<CustomException> {
             authorizationService.authorize(
@@ -112,7 +114,7 @@ class AuthorizationServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `authorize - 1일 금액이 초과될 때 `() {
+    fun `authorize - 1일 금액이 초과될 때 에러`() {
 
         for (i in 0..9) {
             authorizationService.authorize(
@@ -141,7 +143,7 @@ class AuthorizationServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `authorize - 잔액이 부족할 때`() {
+    fun `authorize - 잔액이 부족할 때 에러`() {
 
         val user = userRepository.findById(userId!!).orElseThrow()
 
@@ -162,5 +164,78 @@ class AuthorizationServiceTest @Autowired constructor(
         }.errorCode
 
         assertThat(errorCode).isEqualTo(ErrorCode.NOT_ENOUGH_BALANCE)
+    }
+
+    @Test
+    fun `reverse - 유저가 없을 때 에러`() {
+
+        val errorCode = assertThrows<CustomException> {
+            authorizationService.reverse(
+                1000L,
+                AuthorizationReversalRequest(
+                    currency = Currency.getInstance("KRW"),
+                    amount = BigDecimal("100000"),
+                    authorizationNumber = generateRandomSixDigitNumber()
+                )
+            )
+        }.errorCode
+
+        assertThat(errorCode).isEqualTo(ErrorCode.NOT_EXIST_USER)
+    }
+
+
+    @Test
+    fun `reverse - 원 승인이 없을 때 에러`() {
+
+        val errorCode = assertThrows<CustomException> {
+            authorizationService.reverse(
+                1L,
+                AuthorizationReversalRequest(
+                    currency = Currency.getInstance("KRW"),
+                    amount = BigDecimal("100000"),
+                    authorizationNumber = generateRandomSixDigitNumber()
+                )
+            )
+        }.errorCode
+
+        assertThat(errorCode).isEqualTo(ErrorCode.NO_AUTHORIZATION)
+    }
+
+
+    @Test
+    fun `reverse - 승인 취소가 이미 존재할 때 에러`() {
+
+        val authorizationResponse = authorizationService.authorize(
+            userId!!,
+            AuthorizationRequest(
+                currency = Currency.getInstance("KRW"),
+                amount = BigDecimal("100000"),
+                cardAcceptorName = "10만원 상품권",
+                cardAcceptorCode = "12353545342"
+            )
+        )
+
+        authorizationService.reverse(
+            1L,
+            AuthorizationReversalRequest(
+                currency = authorizationResponse.currency,
+                amount = authorizationResponse.amount,
+                authorizationNumber = authorizationResponse.authorizationNumber
+            )
+        )
+
+
+        val errorCode = assertThrows<CustomException> {
+            authorizationService.reverse(
+                1L,
+                AuthorizationReversalRequest(
+                    currency = authorizationResponse.currency,
+                    amount = authorizationResponse.amount,
+                    authorizationNumber = authorizationResponse.authorizationNumber
+                )
+            )
+        }.errorCode
+
+        assertThat(errorCode).isEqualTo(ErrorCode.EXIST_REVERSE)
     }
 }
