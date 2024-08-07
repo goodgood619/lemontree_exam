@@ -34,6 +34,7 @@ dependencies {
 
 	implementation("it.ozimov:embedded-redis:0.7.1")
 	implementation("org.redisson:redisson:3.16.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")

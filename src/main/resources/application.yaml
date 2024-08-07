@@ -18,3 +18,17 @@ spring:
     init:
       data-locations: classpath:data.sql
       mode: always
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /lemontree/swagger.html
+    disable-swagger-default-url: true
+    enabled: true
+    display-operation-id: true
+  packages-to-scan: com.lemontree.exam
