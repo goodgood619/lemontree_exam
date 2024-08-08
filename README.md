@@ -7,10 +7,29 @@
     * runtime : mysql
 * 실제 서버를 구성하진 않았고,
     * 해당 서버를 실행 시에는
-    * docker와 docker-compose를 깔아야 합니다
-
+    * docker와 docker-compose를 깔아야 합니다.
+* mysql을 docker에 띄워 실행 하기에, 별도로 mysql 환경을 구축하지 않아도 됩니다.
 
 <br/><br/>
+
+### 실행 방법
+
+---
+
+* 사전 세팅 사항 : docker-compose를 깔아 주세요
+* 해당 프로젝트를 개발도구에서 실행 시켜 주세요 (ex) Intellij를 통해 )
+* 실행이 완료되면, swagger는 아래의 url로 접근 가능 합니다.
+  * http://localhost:8080/lemontree/swagger-ui/index.html
+
+<br/>
+
+아래는 해당 프로젝트의 기능 구현 방향, 설계 이유, DDL, DB Schema 가 있습니다.
+<br/>
+
+필요 결과물은 [해당 파일](RESULT.md)을 참고해주세요.  
+
+<br/>
+감사합니다.
 
 ### 구현 방향 (회원 가입 및 로그인 및 계좌 충전)
 
@@ -24,6 +43,8 @@
 * 그리고 사용자 마다, 최대 보유 잔액 한도를 가지고 있습니다. 
   * 하지만 각각 다를 수 있기 때문에
   * 해당 부분 구현은 별도의 List를 만들고, 해당 index에 random하게 접근해서 한도 부여 하는 방향으로 구현 했습니다.
+
+<br/>
 
 ### 구현 방향 (결제와 페이백)
 
@@ -85,68 +106,76 @@
   * 이러면 중복으로 요청이 들어와도, 1건만 처리 될수 있고
   * 반대로 취소를 해야 한다면, 마찬가지로 고유하게 식별할 수 있다고 생각합니다.
 
+### 어려운 구현 조건들 해결 방법
+
+---
+
+* 5초 안에 승인, 페이백 API 요청이 응답 되어야 한다
+  * 보통, 서버를 호출하는 쪽에서 option값을 줘서 통제하지만
+  * 그렇지 못한 경우는 서버 요청 자체 시간 혹은 네트워크 지연 이슈 등이 존재
+  * 현재 상황은 네트워크가 지연되지 않는다는 가정하에 문제를 풀려고 했습니다.
+  * 그래서, 요청 제일 앞단인 Custom한 Filter를 구현해, 총 소요 시간 측정 및 Future를 사용한 timeout을 이용해 구현 하였습니다.
+* 동일한 결제/취소가 동시에 중복해서 일어날수 있습니다.
+  * 이 부분에 대한 해석은 결제는 중복해서 일어나도 그 결제를 모두 승인 해주는 방향으로 구현 하였습니다.
+  * 그러나, 결제 취소 및 페이백 (취소 포함)은 동일한 요청이 여러번 들어왔을 경우
+
+
 ### DDL 작성
 
 ---
 
 ```mysql
     create table users (
-                         balance decimal(38,2),
-                         limit_balance decimal(38,2),
-                         created_at datetime(6),
-                         id bigint not null auto_increment,
-                         updated_at datetime(6),
-                         email varchar(255),
-                         nickname varchar(255),
-                         password varchar(255),
-                         primary key (id)
+        balance decimal(38,2),
+        limit_balance decimal(38,2),
+        created_at datetime(6),
+        id bigint not null auto_increment,
+        updated_at datetime(6),
+        email varchar(255),
+        nickname varchar(255),
+        password varchar(255),
+        primary key (id)
     ) engine=InnoDB;
 
     create table authorizations (
-                              amount decimal(38,2),
-                              authorization_number integer not null,
-                              currency varchar(3),
-                              created_at datetime(6),
-                              id bigint not null auto_increment,
-                              updated_at datetime(6),
-                              user_id bigint,
-                              card_acceptor_code varchar(255),
-                              card_acceptor_name varchar(255),
-                              type enum ('AUTHORIZE','AUTHORIZE_REVERSE'),
-                              primary key (id)
+        amount decimal(38,2),
+        authorization_number integer not null,
+        currency varchar(3),
+        created_at datetime(6),
+        id bigint not null auto_increment,
+        updated_at datetime(6),
+        user_id bigint,
+        card_acceptor_code varchar(255),
+        card_acceptor_name varchar(255),
+        type enum ('AUTHORIZE','AUTHORIZE_REVERSE'),
+        primary key (id)
     ) engine=InnoDB;
 
     create table payback (
-                       amount decimal(38,2),
-                       authorization_amount decimal(38,2),
-                       authorization_number integer not null,
-                       currency varchar(3),
-                       pay_back_number integer not null,
-                       authorization_id bigint,
-                       created_at datetime(6),
-                       id bigint not null auto_increment,
-                       updated_at datetime(6),
-                       type enum ('PAYBACK','PAYBACK_REVERSE'),
-                       primary key (id)
-) engine=InnoDB;
+        amount decimal(38,2),
+        authorization_amount decimal(38,2),
+        authorization_number integer not null,
+        currency varchar(3),
+        pay_back_number integer not null,
+        authorization_id bigint,
+        created_at datetime(6),
+        id bigint not null auto_increment,
+        updated_at datetime(6),
+        type enum ('PAYBACK','PAYBACK_REVERSE'),
+        primary key (id)
+    ) engine=InnoDB;
 
-create table limit_amount_policy (
-                                   currency varchar(3),
-                                   limit_amount decimal(38,2),
-                                   created_at datetime(6),
-                                   id bigint not null auto_increment,
-                                   updated_at datetime(6),
-                                   type enum ('DAY','MONTH','ONCE'),
-                                   primary key (id)
-) engine=InnoDB;
+    create table limit_amount_policy (
+        currency varchar(3),
+        limit_amount decimal(38,2),
+        created_at datetime(6),
+        id bigint not null auto_increment,
+        updated_at datetime(6),
+        type enum ('DAY','MONTH','ONCE'),
+        primary key (id)
+    ) engine=InnoDB;
 
 ```
-
-### 실행 방법
-
----
-
-* 사전 세팅 사항 : docker-compose를 깔아 주세요
 
 ### 관련 Schema
 
