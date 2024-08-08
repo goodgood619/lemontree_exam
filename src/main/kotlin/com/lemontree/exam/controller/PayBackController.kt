@@ -16,13 +16,13 @@ class PayBackController(
     private val payBackService: PayBackService,
 ) {
 
-    @PostMapping("/user/{id}/payback")
+    @PostMapping("/user/payback/{id}")
     fun authorize(@PathVariable id: Long, @RequestBody payBackRequest: PayBackRequest): GeneralResponse<PayBackResponse> {
         val payBackResponse = payBackService.payback(id, payBackRequest)
         return GeneralResponse(data = payBackResponse)
     }
 
-    @PostMapping("/user/{id}/payback/reverse")
+    @PostMapping("/user/payback/reverse/{id}")
     fun reverse(@PathVariable id: Long, @RequestBody payBackReversalRequest: PayBackReversalRequest): GeneralResponse<PayBackReversalResponse> {
         val payBackReversalResponse = payBackService.reverse(id, payBackReversalRequest)
         return GeneralResponse(data = payBackReversalResponse)

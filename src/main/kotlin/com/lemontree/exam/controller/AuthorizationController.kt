@@ -16,13 +16,13 @@ class AuthorizationController(
     private val authorizationService: AuthorizationService,
 ) {
 
-    @PostMapping("/user/{id}/authorize")
+    @PostMapping("/user/authorize/{id}")
     fun authorize(@PathVariable id: Long, @RequestBody authorizationRequest: AuthorizationRequest): GeneralResponse<AuthorizationResponse> {
         val authorizationResponse = authorizationService.authorize(id, authorizationRequest)
         return GeneralResponse(data = authorizationResponse)
     }
 
-    @PostMapping("/user/{id}/reverse")
+    @PostMapping("/user/reverse/{id}")
     fun reverse(@PathVariable id: Long, @RequestBody authorizationReversalRequest: AuthorizationReversalRequest): GeneralResponse<AuthorizationReversalResponse> {
         val authorizationReversalResponse = authorizationService.reverse(id, authorizationReversalRequest)
         return GeneralResponse(data = authorizationReversalResponse)
